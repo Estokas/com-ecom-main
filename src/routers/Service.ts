@@ -72,4 +72,10 @@ router.get('/shops/:name', async (req, res) => {
     });
 })
 
+router.get('/category/service',async (req, res) => {
+  let serviceCategoryNames = await ServiceModel.distinct('category');
+  console.log(serviceCategoryNames);
+  res.send(JSON.stringify(serviceCategoryNames));
+})
+
 export default router

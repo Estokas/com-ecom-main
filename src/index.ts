@@ -9,7 +9,7 @@ import { connect } from "mongoose";
 async function main() {
     const app: Express = express();
     
-    // app.use(cors(corsOption))
+    app.use(cors(corsOption))
     app.use(express.json())
     app.use(cookieParser())
     app.use(routers)

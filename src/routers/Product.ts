@@ -37,5 +37,10 @@ router.put('/update/product/:id', async (req, res) => {
     return res.send(product)
 })
  
+router.get('/category/product',async (req, res) => {
+    let productCategoryNames = await ProductModel.distinct('category');
+    console.log(productCategoryNames);
+    res.send(JSON.stringify(productCategoryNames));
+})
 
 export default router
