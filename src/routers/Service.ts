@@ -1,12 +1,14 @@
 import express from 'express';
 import { ServiceModel } from '../entity/Service';
-import { ProductModel } from '../entity/Product';
 import _ from 'lodash';
 import multerStorage from "../multerStorage";
 import multer from 'multer';
+import { ProductModel } from '../entity/Product';
 
 const upload = multer({ storage: multerStorage })
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 
 router.get('/services', async (req, res) => {
     const services = await ServiceModel.find({})
@@ -24,6 +26,10 @@ router.post('/add/service', upload.single('image'), async (req, res) => {
     service.name = _.startCase(service.name)
     service.category = _.lowerCase(service.category)
     service.image = req.file
+    service.shop = _.startCase(service.shop)
+    service.description = _.startCase(service.description)
+    service.fee = _.startCase(service.fee)
+    service.enable = service.enable
 
     service = await ServiceModel.create(service)
     return res.send(service)
@@ -37,45 +43,30 @@ router.put('/update/service/:id', async (req, res) => {
     )
     return res.send(service)
 })
- 
-router.get('/shops', async (req, res) => {
-    ServiceModel.distinct('shop', function(err: any, serviceShopNames: any) {
-        if (err) throw err;
-        console.log('Shop names in the service collection:', serviceShopNames);
-        
-        // Retrieve all the shop names from the product collection
-        ProductModel.distinct('shop', function(err: any, productShopNames: any) {
-          if (err) throw err;
-          console.log('Shop names in the product collection:', productShopNames);
-          
-          // Combine the shop names from both collections and remove duplicates
-          const allShopNames = [...new Set([...serviceShopNames, ...productShopNames])];
-          console.log('All shop names in the database:', allShopNames);
-          
-          return res.send(allShopNames)
-        });
-      });
-})
 
+
+router.get('/shops', async (req, res) => {
+  let serviceShopNames = await ServiceModel.distinct('shop');
+  let productShopNames = await ProductModel.distinct('shop');
+
+  let shopNames = [...new Set([...serviceShopNames, ...productShopNames])];
+  return res.send(shopNames);
+})
+ 
 router.get('/shops/:name', async (req, res) => {
-    ServiceModel.find({ shop: req?.params?.name }, function(err: any, services: any) {
-      if (err) throw err;
-      console.log('Services for', req?.params?.name, ':', services);
-      
-      // Retrieve the products for the specified shop name
-      ProductModel.find({ shop: req?.params?.name }, function(err: any, products: any) {
-        if (err) throw err;
-        console.log('Products for', req?.params?.name, ':', products);
-        
-        return res.send({"services": services, "products": products})
-      });
-    });
+    console.log(req?.params?.name);
+    let services = await ServiceModel.find({ shop: req?.params?.name })
+    let products = await ProductModel.find({ shop: req?.params?.name })
+    
+    console.log('Services for', req?.params?.name, ':', services);
+    console.log('Products for', req?.params?.name, ':', products);
+    let services_products = [...new Set([...services, ...products])];
+    return res.send(services_products);
 })
 
 router.get('/category/service',async (req, res) => {
-  let serviceCategoryNames = await ServiceModel.distinct('category');
-  console.log(serviceCategoryNames);
-  res.send(JSON.stringify(serviceCategoryNames));
+  let serviceCategoryNames = await ServiceModel.distinct('category')
+  return res.send(serviceCategoryNames)
 })
 
 export default router

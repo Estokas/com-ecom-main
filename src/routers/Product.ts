@@ -22,6 +22,9 @@ router.post('/add/product', upload.single('image'), async (req, res) => {
     product.name = _.startCase(product.name)
     product.category = product.category
     product.variant = product.variant?.toLocaleLowerCase()
+    product.description = product.description
+    product.enable = product.enable
+    product.shop = product.shop
     product.image = req.file
 
     product = await ProductModel.create(product)
@@ -36,11 +39,11 @@ router.put('/update/product/:id', async (req, res) => {
     )
     return res.send(product)
 })
- 
+
 router.get('/category/product',async (req, res) => {
-    let productCategoryNames = await ProductModel.distinct('category');
-    console.log(productCategoryNames);
-    res.send(JSON.stringify(productCategoryNames));
+    let productCategoryNames = await ProductModel.distinct('category')
+    console.log(productCategoryNames)
+    return res.send(productCategoryNames)
 })
 
 export default router

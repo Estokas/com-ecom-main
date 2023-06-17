@@ -11,13 +11,20 @@ import _ from "lodash";
 const router = express.Router();
 
 router.post('/auth/login', async (req, res) => {
-
-    const body = req?.body
-    const user = await UserModel.findOne({ email: body?.email });
+    console.log(req);
+    //const {body} = req;
+    let {body, query} = req;
+    if (Object.keys(body).length === 0)
+    {
+        body = query;
+    }
+    console.log(body);
+    const user = await UserModel.findOne({ email: body['email'] });
+    console.log(user);
 
     if(!user) 
         return res.status(404).send('User not found')
-    if (!await compare(body?.password, user?.password as string))
+    if (!await compare(body['password'] as string, user['password'] as string))
         return res.status(400).send('Invalid password')
 
     // const refreshToken = generateRefreshToken({ user }, { expiresIn: '7d' })
@@ -29,7 +36,7 @@ router.post('/auth/login', async (req, res) => {
     //     secure: true,
     // })
     res.status(200)
-    .json({ token: accessToken, role: user.role})
+    .json({ token: accessToken, role: user['role']})
 })
 
 router.post('/auth/refresh-token', async (req, res) => {
@@ -65,6 +72,7 @@ router.post('/add/user', async (req, res) => {
     user.firstName = _.startCase(user.firstName)
     user.lastName = _.startCase(user.lastName)
     user.password = await hash(user.password, 12)
+    user.role = _.startCase(user.role)
 
     user = await UserModel.create(user)
     return res.send(user)
